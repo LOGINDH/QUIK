@@ -8,10 +8,35 @@ const api = axios.create({
   baseURL: API_BASE_URL,
   headers: {
     'Content-Type': 'application/json',
-    'ngrok-skip-browser-warning': 'true',
+    'ngrok-skip-browser-warning': '69420',
   },
   timeout: 25000,
 });
+
+// Request interceptor to ensure bypass headers are always present
+api.interceptors.request.use((config) => {
+  config.headers = config.headers || {};
+  config.headers['ngrok-skip-browser-warning'] = '69420';
+  return config;
+});
+
+// Response interceptor to detect and reject HTML responses (ngrok warning or 404 pages)
+api.interceptors.response.use(
+  (response) => {
+    if (typeof response.data === 'string' && (response.data.includes('<!DOCTYPE') || response.data.includes('<html'))) {
+      const error = new Error('Received unexpected HTML page from server. Please verify backend is online.');
+      error.response = {
+        status: 502,
+        data: { error: 'Backend server returned an unexpected response. Please ensure backend is active.' }
+      };
+      return Promise.reject(error);
+    }
+    return response;
+  },
+  (error) => {
+    return Promise.reject(error);
+  }
+);
 
 /**
  * Image URL helper:

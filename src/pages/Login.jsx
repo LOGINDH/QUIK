@@ -82,11 +82,14 @@ const Login = () => {
 
       console.log('Login Response:', data);
 
-      const userObj = data?.user || data?.provider || (data?.id ? data : (data?.data?.user || data?.data?.provider || data?.data));
-      const ads = data?.advertisements || data?.ads || [];
-      const serviceType = data?.service_type || userObj?.service_type || 'auto';
+      const userObj = data && typeof data === 'object'
+        ? (data.user || data.provider || (data.id ? data : (data.data?.user || data.data?.provider || data.data)))
+        : null;
 
-      if (userObj && (userObj.id || userObj.phone || userObj.name)) {
+      const ads = (data && typeof data === 'object' && (data.advertisements || data.ads)) || [];
+      const serviceType = (data && typeof data === 'object' && (data.service_type || userObj?.service_type)) || 'auto';
+
+      if (userObj && typeof userObj === 'object' && (userObj.id || userObj.phone || userObj.name)) {
         if (isProvider || userObj.role === 'provider' || userObj.service_type) {
           loginProviderSession(userObj, serviceType);
           navigate('/provider/dashboard', { replace: true });
@@ -95,7 +98,7 @@ const Login = () => {
           navigate('/home', { replace: true });
         }
       } else {
-        setError('Login response did not contain valid account information.');
+        setError('Invalid response received from server. Please try again.');
       }
     } catch (err) {
       console.error('Login Error:', err);

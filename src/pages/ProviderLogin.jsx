@@ -74,10 +74,13 @@ const ProviderLogin = () => {
 
       console.log('Provider Login Response:', data);
 
-      const providerObj = data?.provider || data?.user || (data?.id ? data : (data?.data?.provider || data?.data?.user || data?.data));
-      const serviceType = data?.service_type || providerObj?.service_type || 'auto';
+      const providerObj = data && typeof data === 'object'
+        ? (data.provider || data.user || (data.id ? data : (data.data?.provider || data.data?.user || data.data)))
+        : null;
 
-      if (providerObj && (providerObj.id || providerObj.phone || providerObj.name)) {
+      const serviceType = (data && typeof data === 'object' && (data.service_type || providerObj?.service_type)) || 'auto';
+
+      if (providerObj && typeof providerObj === 'object' && (providerObj.id || providerObj.phone || providerObj.name)) {
         if (isPassenger || providerObj.role === 'user') {
           loginUserSession(providerObj, data?.advertisements || []);
           navigate('/home', { replace: true });
@@ -86,7 +89,7 @@ const ProviderLogin = () => {
           navigate('/provider/dashboard', { replace: true });
         }
       } else {
-        setError('Login response did not contain valid credentials.');
+        setError('Invalid response received from server. Please try again.');
       }
     } catch (err) {
       console.error('Provider Login Error:', err);
