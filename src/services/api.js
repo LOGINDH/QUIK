@@ -1,7 +1,8 @@
 import axios from 'axios';
 
 export const API_BASE_URL = (
-  import.meta.env.VITE_API_URL || '/quik'
+  import.meta.env.VITE_API_URL ||
+  (import.meta.env.DEV ? '/quik' : 'https://hydration-cycle-answering.ngrok-free.dev/quik')
 ).replace(/\/+$/, '');
 
 const api = axios.create({
