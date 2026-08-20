@@ -14,15 +14,22 @@ export default async function handler(req, res) {
   }
 
   try {
-    const rawPath = req.query.path;
-    const pathString = Array.isArray(rawPath) ? rawPath.join('/') : (rawPath || '');
-    
+    const rawPath = req.query?.path;
+    const pathFromUrl = (req.url || '').split('?')[0].replace(/^\/api\/?/, '');
+    const pathString = Array.isArray(rawPath)
+      ? rawPath.join('/')
+      : (typeof rawPath === 'string' && rawPath ? rawPath : pathFromUrl);
+
     // Extract search query if present
     const urlParts = (req.url || '').split('?');
     const queryString = urlParts.length > 1 ? `?${urlParts[1]}` : '';
 
-    // Ensure trailing slash for Django endpoints if no query string
-    const cleanSubPath = pathString ? (pathString.endsWith('/') ? pathString : `${pathString}/`) : '';
+    // Ensure clean sub-path with trailing slash for Django endpoints
+    let cleanSubPath = (pathString || '').trim().replace(/^\/+/, '');
+    if (cleanSubPath && !cleanSubPath.endsWith('/')) {
+      cleanSubPath += '/';
+    }
+
     const targetUrl = `https://hydration-cycle-answering.ngrok-free.dev/quik/${cleanSubPath}${queryString}`;
 
     const headers = {
