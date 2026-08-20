@@ -8,10 +8,11 @@ export default defineConfig({
   server: {
     port: 5173,
     proxy: {
-      '/quik': {
-        target: 'https://hydration-cycle-answering.ngrok-free.dev',
+      '/api': {
+        target: 'https://hydration-cycle-answering.ngrok-free.dev/quik',
         changeOrigin: true,
         secure: false,
+        rewrite: (path) => path.replace(/^\/api/, ''),
         headers: {
           'ngrok-skip-browser-warning': 'true',
         },
