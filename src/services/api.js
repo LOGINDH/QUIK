@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 export const API_BASE_URL = (
-  import.meta.env.VITE_API_URL || 'https://hydration-cycle-answering.ngrok-free.dev/quik'
+  import.meta.env.VITE_API_URL || '/quik'
 ).replace(/\/+$/, '');
 
 const api = axios.create({
@@ -10,7 +10,7 @@ const api = axios.create({
     'Content-Type': 'application/json',
     'ngrok-skip-browser-warning': 'true',
   },
-  timeout: 20000,
+  timeout: 25000,
 });
 
 /**
