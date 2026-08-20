@@ -14,7 +14,6 @@ export default defineConfig({
         secure: false,
         headers: {
           'ngrok-skip-browser-warning': 'true',
-          'Host': 'hydration-cycle-answering.ngrok-free.dev',
         },
       },
     },

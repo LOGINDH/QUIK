@@ -33,32 +33,64 @@ const ProviderLogin = () => {
     e.preventDefault();
     setError(null);
 
-    if (!formData.phone.trim()) {
+    const phone = formData.phone.trim();
+    const password = formData.password;
+
+    if (!phone) {
       setError('Please enter your provider phone number.');
       return;
     }
-    if (!formData.password) {
+    if (!password) {
       setError('Please enter your provider password.');
       return;
     }
 
     try {
       setLoading(true);
-      const data = await loginProvider(formData);
+      let isPassenger = false;
+      let data = null;
+
+      try {
+        data = await loginProvider({ phone, password });
+      } catch (provErr) {
+        const errMsg = provErr.response?.data?.error || provErr.message || '';
+        // If not a provider or forbidden, try user login as fallback
+        if (
+          errMsg.toLowerCase().includes('invalid provider') ||
+          errMsg.toLowerCase().includes('user') ||
+          provErr.response?.status === 403 ||
+          provErr.response?.status === 404
+        ) {
+          try {
+            data = await loginUser({ phone, password });
+            isPassenger = true;
+          } catch {
+            throw provErr;
+          }
+        } else {
+          throw provErr;
+        }
+      }
+
       console.log('Provider Login Response:', data);
 
-      const providerObj = data?.provider || (data?.id ? data : (data?.data?.provider || data?.data));
+      const providerObj = data?.provider || data?.user || (data?.id ? data : (data?.data?.provider || data?.data?.user || data?.data));
       const serviceType = data?.service_type || providerObj?.service_type || 'auto';
 
       if (providerObj && (providerObj.id || providerObj.phone || providerObj.name)) {
-        loginProviderSession(providerObj, serviceType);
-        navigate('/provider/dashboard', { replace: true });
+        if (isPassenger || providerObj.role === 'user') {
+          loginUserSession(providerObj, data?.advertisements || []);
+          navigate('/home', { replace: true });
+        } else {
+          loginProviderSession(providerObj, serviceType);
+          navigate('/provider/dashboard', { replace: true });
+        }
       } else {
-        setError('Login response did not contain valid provider credentials.');
+        setError('Login response did not contain valid credentials.');
       }
     } catch (err) {
       console.error('Provider Login Error:', err);
-      setError(extractErrorMessage(err, 'Invalid provider credentials. Please check phone and password created by administrator.'));
+      setError(extractErrorMessage(err, 'Invalid credentials. Please verify your phone number and password.'));
     } finally {
       setLoading(false);
     }

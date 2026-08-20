@@ -33,34 +33,69 @@ const Login = () => {
     e.preventDefault();
     setError(null);
 
-    if (!formData.phone.trim()) {
+    const phone = formData.phone.trim();
+    const password = formData.password;
+
+    if (!phone) {
       setError('Please enter your phone number.');
       return;
     }
-    if (!formData.password) {
+    if (!password) {
       setError('Please enter your password.');
       return;
     }
 
     try {
       setLoading(true);
-      const data = await loginUser(formData);
+      let isProvider = false;
+      let data = null;
+
+      try {
+        // Attempt user login first
+        data = await loginUser({ phone, password });
+      } catch (userErr) {
+        const errMsg = userErr.response?.data?.error || userErr.message || '';
+        // If the backend identifies this account as a provider, attempt provider login seamlessly
+        if (
+          errMsg.toLowerCase().includes('provider') ||
+          userErr.response?.status === 403
+        ) {
+          try {
+            data = await loginProvider({ phone, password });
+            isProvider = true;
+          } catch (provErr) {
+            if (provErr.response?.status === 401) {
+              throw new Error('Invalid password for this Provider account.');
+            }
+            throw userErr;
+          }
+        } else {
+          // Try provider login as automatic fallback
+          try {
+            data = await loginProvider({ phone, password });
+            isProvider = true;
+          } catch {
+            throw userErr;
+          }
+        }
+      }
+
       console.log('Login Response:', data);
 
-      const userObj = data?.user || (data?.id ? data : (data?.data?.user || data?.data));
+      const userObj = data?.user || data?.provider || (data?.id ? data : (data?.data?.user || data?.data?.provider || data?.data));
       const ads = data?.advertisements || data?.ads || [];
+      const serviceType = data?.service_type || userObj?.service_type || 'auto';
 
       if (userObj && (userObj.id || userObj.phone || userObj.name)) {
-        // If this account has provider role or service_type
-        if (userObj.role === 'provider' || userObj.service_type) {
-          loginProviderSession(userObj, userObj.service_type);
+        if (isProvider || userObj.role === 'provider' || userObj.service_type) {
+          loginProviderSession(userObj, serviceType);
           navigate('/provider/dashboard', { replace: true });
         } else {
           loginUserSession(userObj, ads);
           navigate('/home', { replace: true });
         }
       } else {
-        setError('Login response did not contain valid user information.');
+        setError('Login response did not contain valid account information.');
       }
     } catch (err) {
       console.error('Login Error:', err);

@@ -52,7 +52,12 @@ export const extractErrorMessage = (error, defaultMsg = 'An unexpected error occ
     const { status, data } = error.response;
 
     if (data && typeof data === 'object') {
-      if (data.error) return data.error;
+      if (data.error) {
+        if (data.error.toLowerCase().includes('use provider login')) {
+          return 'This account is registered as a Service Provider. Please sign in via the Provider Portal or use Provider Login.';
+        }
+        return data.error;
+      }
       if (data.message) return data.message;
       if (data.detail) return data.detail;
 
@@ -73,7 +78,7 @@ export const extractErrorMessage = (error, defaultMsg = 'An unexpected error occ
     if (status === 400) return 'Invalid data provided. Please check all required fields.';
     if (status === 401) return 'Invalid credentials. Please verify your phone number and password.';
     if (status === 403) return 'Access denied. You do not have permission for this action.';
-    if (status === 404) return 'The requested resource or booking could not be found.';
+    if (status === 404) return 'The requested account or resource could not be found.';
     if (status >= 500) return 'The QUIK server encountered an internal issue. Please try again in a moment.';
   }
 
