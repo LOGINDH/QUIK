@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { getRequestStatus, extractErrorMessage } from '../services/api';
-import { getCurrentLocation } from '../utils/location';
+import { getCurrentLocation, calculateDistanceKm, calculateEtaMinutes } from '../utils/location';
 import { storage } from '../utils/storage';
 import MapView from '../components/MapView';
 import ProviderCard from '../components/ProviderCard';
@@ -54,14 +54,18 @@ const BookingTracking = () => {
 
       // Cache updated status in storage
       if (data) {
+        const provObj = data.provider && typeof data.provider === 'object' ? data.provider : null;
+        const dist = data.distance_km ?? provObj?.distance_km;
+        const eta = data.estimated_minutes ?? provObj?.estimated_minutes;
+
         storage.setActiveBooking({
           id,
-          service_type: data.service_type || data.request?.service_type,
+          service_type: data.service_type || data.request?.service_type || provObj?.service_type,
           status: data.status,
-          distance_km: data.distance_km,
-          estimated_minutes: data.estimated_minutes,
-          provider_name: data.provider_name || data.provider?.name,
-          provider_phone: data.provider_phone || data.provider?.phone,
+          distance_km: dist != null ? parseFloat(dist) : null,
+          estimated_minutes: eta != null ? parseInt(eta, 10) : null,
+          provider_name: data.provider_name || provObj?.name,
+          provider_phone: data.provider_phone || provObj?.phone,
           updatedAt: new Date().toISOString(),
         });
       }
@@ -95,21 +99,89 @@ const BookingTracking = () => {
   }, [fetchStatus, polling]);
 
   const currentStatus = (bookingData?.status || bookingData?.request?.status || 'pending').toLowerCase();
+  const providerObj = bookingData?.provider && typeof bookingData.provider === 'object' ? bookingData.provider : null;
 
-  // Extract provider location if backend provides it
-  const providerLat = bookingData?.latitude ?? bookingData?.provider_latitude ?? bookingData?.provider?.latitude ?? bookingData?.provider_location?.latitude;
-  const providerLng = bookingData?.longitude ?? bookingData?.provider_longitude ?? bookingData?.provider?.longitude ?? bookingData?.provider_location?.longitude;
+  const providerName =
+    bookingData?.provider_name ||
+    providerObj?.name ||
+    'Assigned Provider';
 
-  const providerLocation = (providerLat != null && providerLng != null) ? {
+  const providerPhone =
+    bookingData?.provider_phone ||
+    providerObj?.phone;
+
+  const serviceType =
+    bookingData?.service_type ||
+    bookingData?.request?.service_type ||
+    providerObj?.service_type ||
+    'auto';
+
+  // Extract provider location if backend provides it (including approximate_latitude/longitude)
+  const providerLat =
+    providerObj?.approximate_latitude ??
+    providerObj?.latitude ??
+    bookingData?.provider_latitude ??
+    bookingData?.latitude ??
+    bookingData?.provider_location?.latitude;
+
+  const providerLng =
+    providerObj?.approximate_longitude ??
+    providerObj?.longitude ??
+    bookingData?.provider_longitude ??
+    bookingData?.longitude ??
+    bookingData?.provider_location?.longitude;
+
+  const providerLocation = (providerLat != null && providerLng != null && !isNaN(parseFloat(providerLat)) && !isNaN(parseFloat(providerLng))) ? {
     latitude: parseFloat(providerLat),
     longitude: parseFloat(providerLng),
   } : null;
 
-  // Extract user coordinates from bookingData or device
-  const effectiveUserCoords = userCoords || (bookingData?.user_latitude && bookingData?.user_longitude ? {
-    latitude: parseFloat(bookingData.user_latitude),
-    longitude: parseFloat(bookingData.user_longitude),
+  // Extract user coordinates from device or bookingData
+  const bookingUserLat =
+    bookingData?.user_latitude ??
+    bookingData?.user?.latitude ??
+    bookingData?.request?.latitude;
+
+  const bookingUserLng =
+    bookingData?.user_longitude ??
+    bookingData?.user?.longitude ??
+    bookingData?.request?.longitude;
+
+  const effectiveUserCoords = userCoords || (bookingUserLat != null && bookingUserLng != null && !isNaN(parseFloat(bookingUserLat)) && !isNaN(parseFloat(bookingUserLng)) ? {
+    latitude: parseFloat(bookingUserLat),
+    longitude: parseFloat(bookingUserLng),
   } : null);
+
+  // Extract or calculate distance
+  const rawDistance =
+    bookingData?.distance_km ??
+    providerObj?.distance_km ??
+    bookingData?.request?.distance_km;
+
+  let effectiveDistance = null;
+  if (rawDistance != null && !isNaN(parseFloat(rawDistance))) {
+    effectiveDistance = parseFloat(rawDistance);
+  } else if (effectiveUserCoords && providerLocation) {
+    effectiveDistance = calculateDistanceKm(
+      effectiveUserCoords.latitude,
+      effectiveUserCoords.longitude,
+      providerLocation.latitude,
+      providerLocation.longitude
+    );
+  }
+
+  // Extract or calculate estimated minutes (ETA)
+  const rawEta =
+    bookingData?.estimated_minutes ??
+    providerObj?.estimated_minutes ??
+    bookingData?.request?.estimated_minutes;
+
+  let effectiveEta = null;
+  if (rawEta != null && !isNaN(parseInt(rawEta, 10))) {
+    effectiveEta = parseInt(rawEta, 10);
+  } else if (effectiveDistance != null) {
+    effectiveEta = calculateEtaMinutes(effectiveDistance, serviceType);
+  }
 
   if (loading && !bookingData) {
     return (
@@ -192,18 +264,18 @@ const BookingTracking = () => {
                 En Route
               </span>
               <h2 className="text-xl sm:text-2xl font-black">
-                {bookingData?.provider_name || bookingData?.provider?.name || 'Driver'} is on the way
+                {providerName} is on the way
               </h2>
               <p className="text-xs sm:text-sm text-emerald-100">
-                {bookingData?.distance_km != null
-                  ? `${bookingData.distance_km} km away • Arriving in approximately ${bookingData.estimated_minutes || 1} min`
+                {effectiveDistance != null
+                  ? `${effectiveDistance.toFixed(2)} km away • Arriving in approximately ${effectiveEta || 1} min`
                   : 'Approaching your current GPS location'}
               </p>
             </div>
 
-            {bookingData?.provider_phone && (
+            {providerPhone && (
               <a
-                href={`tel:${bookingData.provider_phone}`}
+                href={`tel:${providerPhone}`}
                 className="inline-flex items-center gap-2 px-5 py-3 rounded-2xl bg-white text-emerald-950 text-xs sm:text-sm font-bold shadow-md hover:bg-emerald-50 transition-colors"
               >
                 <Phone className="w-4 h-4 text-emerald-700" />
@@ -214,11 +286,11 @@ const BookingTracking = () => {
 
           {/* Provider Card with ETA */}
           <ProviderCard
-            providerName={bookingData?.provider_name || bookingData?.provider?.name || 'Assigned Driver'}
-            providerPhone={bookingData?.provider_phone || bookingData?.provider?.phone}
-            serviceType={bookingData?.service_type || 'auto'}
-            distanceKm={bookingData?.distance_km}
-            estimatedMinutes={bookingData?.estimated_minutes}
+            providerName={providerName}
+            providerPhone={providerPhone}
+            serviceType={serviceType}
+            distanceKm={effectiveDistance}
+            estimatedMinutes={effectiveEta}
             latitude={providerLat}
             longitude={providerLng}
             status="accepted"
@@ -237,7 +309,7 @@ const BookingTracking = () => {
               Service completed successfully
             </h2>
             <p className="text-xs sm:text-sm text-emerald-900/80 mt-1 max-w-md mx-auto">
-              Your service request has been marked as finished by the provider. Thank you for using QUIK!
+              Your service request has been marked as finished by the provider. Thank you for using Kuiky!
             </p>
           </div>
 
@@ -266,8 +338,8 @@ const BookingTracking = () => {
         <MapView
           userLocation={effectiveUserCoords}
           providerLocation={providerLocation}
-          providerName={bookingData?.provider_name || 'Driver'}
-          serviceType={bookingData?.service_type || 'auto'}
+          providerName={providerName}
+          serviceType={serviceType}
           height="340px"
         />
       </div>

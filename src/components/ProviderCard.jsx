@@ -53,7 +53,7 @@ const ProviderCard = ({
         )}
       </div>
 
-      {/* Real-time ETA & Distance stats from Backend */}
+      {/* Real-time ETA & Distance stats */}
       <div className="grid grid-cols-2 gap-3 p-4 rounded-2xl bg-emerald-50/80 border border-emerald-200">
         <div className="flex items-center gap-3">
           <div className="p-2 rounded-xl bg-white text-emerald-800 shadow-2xs border border-emerald-200">
@@ -62,7 +62,9 @@ const ProviderCard = ({
           <div>
             <span className="text-[10px] uppercase font-bold text-emerald-800/80 tracking-wider">Distance</span>
             <p className="text-sm font-black text-emerald-950">
-              {distanceKm != null ? `${distanceKm} km away` : 'Calculating...'}
+              {distanceKm != null && !isNaN(parseFloat(distanceKm))
+                ? `${parseFloat(distanceKm).toFixed(2)} km away`
+                : (status === 'accepted' ? 'Nearby' : 'Calculating...')}
             </p>
           </div>
         </div>
@@ -74,7 +76,11 @@ const ProviderCard = ({
           <div>
             <span className="text-[10px] uppercase font-bold text-emerald-800/80 tracking-wider">Estimated Arrival</span>
             <p className="text-sm font-black text-emerald-950">
-              {estimatedMinutes != null ? `~${estimatedMinutes} mins` : 'On the way'}
+              {estimatedMinutes != null && !isNaN(parseInt(estimatedMinutes, 10))
+                ? `~${parseInt(estimatedMinutes, 10)} mins`
+                : (distanceKm != null && !isNaN(parseFloat(distanceKm))
+                    ? `~${Math.max(1, Math.round((parseFloat(distanceKm) / 30) * 60))} mins`
+                    : 'On the way')}
             </p>
           </div>
         </div>

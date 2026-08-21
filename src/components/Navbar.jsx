@@ -33,7 +33,7 @@ const Navbar = () => {
           <div>
             <div className="flex items-center gap-1.5">
               <span className="text-xl font-black tracking-tight text-emerald-950">
-                QUIK
+                Kuiky
               </span>
               <span className="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-md bg-emerald-100 text-emerald-900 border border-emerald-300">
                 {isProviderAuthenticated ? 'Provider' : '24/7'}

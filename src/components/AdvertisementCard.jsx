@@ -33,7 +33,7 @@ const AdvertisementCard = ({ ad, className = '' }) => {
           </div>
 
           <h4 className="text-base sm:text-lg font-bold text-emerald-950 leading-snug">
-            {ad.title || 'QUIK Priority Assistance'}
+            {ad.title || 'Kuiky Priority Assistance'}
           </h4>
 
           <p className="text-xs sm:text-sm text-emerald-900/80 mt-1 line-clamp-2 leading-relaxed max-w-md">
@@ -46,7 +46,7 @@ const AdvertisementCard = ({ ad, className = '' }) => {
             <ServiceIcon className="w-3.5 h-3.5" />
           </div>
           <span className="text-xs font-semibold text-emerald-900">
-            Available 24/7 on QUIK
+            Available 24/7 on Kuiky
           </span>
         </div>
       </div>
@@ -67,7 +67,7 @@ const AdvertisementCard = ({ ad, className = '' }) => {
               <ServiceIcon className="w-7 h-7" />
             </div>
             <span className="text-[11px] font-bold text-emerald-900 tracking-wide uppercase">
-              QUIK Service
+              Kuiky Service
             </span>
           </div>
         )}

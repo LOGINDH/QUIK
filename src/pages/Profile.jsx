@@ -36,7 +36,7 @@ const Profile = () => {
           <div>
             <div className="flex items-center gap-2">
               <h2 className="text-lg font-bold text-emerald-950">
-                {user?.name || 'QUIK Member'}
+                {user?.name || 'Kuiky Member'}
               </h2>
               <span className="text-[10px] uppercase font-extrabold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-900 border border-emerald-300">
                 {user?.role || 'User'}
@@ -104,7 +104,7 @@ const Profile = () => {
           className="w-full py-3.5 px-4 rounded-2xl font-bold text-xs sm:text-sm text-emerald-950 bg-white border border-emerald-200 hover:bg-emerald-50 active:bg-emerald-100 transition-colors shadow-2xs flex items-center justify-center gap-2 cursor-pointer"
         >
           <LogOut className="w-4 h-4 text-emerald-800" />
-          <span>Sign Out of QUIK</span>
+          <span>Sign Out of Kuiky</span>
         </button>
       </div>
     </div>

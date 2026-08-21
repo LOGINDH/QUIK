@@ -104,11 +104,11 @@ export const extractErrorMessage = (error, defaultMsg = 'An unexpected error occ
     if (status === 401) return 'Invalid credentials. Please verify your phone number and password.';
     if (status === 403) return 'Access denied. You do not have permission for this action.';
     if (status === 404) return 'The requested account or resource could not be found.';
-    if (status >= 500) return 'The QUIK server encountered an internal issue. Please try again in a moment.';
+    if (status >= 500) return 'The Kuiky server encountered an internal issue. Please try again in a moment.';
   }
 
   if (error.request || error.code === 'ERR_NETWORK') {
-    return 'Unable to connect to the QUIK server. Please check your connection.';
+    return 'Unable to connect to the Kuiky server. Please check your connection.';
   }
 
   return error.message || defaultMsg;

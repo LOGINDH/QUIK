@@ -35,7 +35,7 @@ export default async function handler(req, res) {
     const headers = {
       'Content-Type': req.headers['content-type'] || 'application/json',
       'ngrok-skip-browser-warning': '69420',
-      'User-Agent': 'QUIK-Vercel-Proxy/1.0',
+      'User-Agent': 'Kuiky-Vercel-Proxy/1.0',
     };
 
     const fetchOptions = {
@@ -60,7 +60,7 @@ export default async function handler(req, res) {
   } catch (error) {
     console.error('Vercel proxy error:', error);
     return res.status(502).json({
-      error: 'Unable to reach the QUIK backend server.',
+      error: 'Unable to reach the Kuiky backend server.',
       detail: error.message,
     });
   }

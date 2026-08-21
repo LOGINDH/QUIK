@@ -176,7 +176,7 @@ const Home = () => {
           <ShieldCheck className="w-5 h-5" />
         </div>
         <p className="leading-relaxed font-medium">
-          <strong className="text-emerald-950 font-bold">QUIK Guarantee:</strong> All drivers and emergency units operate with real GPS verification for your safety and fast turnaround.
+          <strong className="text-emerald-950 font-bold">Kuiky Guarantee:</strong> All drivers and emergency units operate with real GPS verification for your safety and fast turnaround.
         </p>
       </div>
     </div>

@@ -50,16 +50,16 @@ const ProviderRequestCard = ({
 
         {/* Distance & ETA Pills */}
         <div className="text-right flex flex-col items-end gap-1">
-          {request.distance_km != null && (
+          {request.distance_km != null && !isNaN(parseFloat(request.distance_km)) && (
             <span className="inline-flex items-center gap-1 text-xs font-bold text-emerald-950 bg-emerald-50 border border-emerald-200 px-2.5 py-1 rounded-xl">
               <Navigation className="w-3.5 h-3.5 text-emerald-800" />
-              {request.distance_km} km
+              {parseFloat(request.distance_km).toFixed(2)} km
             </span>
           )}
-          {request.estimated_minutes != null && (
+          {request.estimated_minutes != null && !isNaN(parseInt(request.estimated_minutes, 10)) && (
             <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-800 bg-white border border-emerald-200 px-2 py-0.5 rounded-lg">
               <Clock className="w-3 h-3 text-emerald-700" />
-              ~{request.estimated_minutes} min arrival
+              ~{parseInt(request.estimated_minutes, 10)} min arrival
             </span>
           )}
         </div>

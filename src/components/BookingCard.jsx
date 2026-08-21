@@ -47,28 +47,35 @@ const BookingCard = ({ booking, onClear }) => {
       </div>
 
       {/* ETA and Distance Highlights if accepted */}
-      {booking.status === 'accepted' && (
-        <div className="grid grid-cols-2 gap-2 my-3 p-3 rounded-2xl bg-emerald-50 border border-emerald-200">
-          <div className="flex items-center gap-2">
-            <Navigation className="w-4 h-4 text-emerald-800" />
-            <div>
-              <p className="text-[10px] text-emerald-800/70 uppercase font-bold">Distance</p>
-              <p className="text-xs font-bold text-emerald-950">
-                {booking.distance_km != null ? `${booking.distance_km} km away` : 'Approaching'}
-              </p>
+      {booking.status === 'accepted' && (() => {
+        const dist = booking.distance_km ?? booking.provider?.distance_km;
+        const eta = booking.estimated_minutes ?? booking.provider?.estimated_minutes;
+        const parsedDist = dist != null && !isNaN(parseFloat(dist)) ? parseFloat(dist) : null;
+        const parsedEta = eta != null && !isNaN(parseInt(eta, 10)) ? parseInt(eta, 10) : (parsedDist != null ? Math.max(1, Math.round((parsedDist / 30) * 60)) : null);
+
+        return (
+          <div className="grid grid-cols-2 gap-2 my-3 p-3 rounded-2xl bg-emerald-50 border border-emerald-200">
+            <div className="flex items-center gap-2">
+              <Navigation className="w-4 h-4 text-emerald-800" />
+              <div>
+                <p className="text-[10px] text-emerald-800/70 uppercase font-bold">Distance</p>
+                <p className="text-xs font-bold text-emerald-950">
+                  {parsedDist != null ? `${parsedDist.toFixed(2)} km away` : 'Approaching'}
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <Clock className="w-4 h-4 text-emerald-800" />
+              <div>
+                <p className="text-[10px] text-emerald-800/70 uppercase font-bold">ETA</p>
+                <p className="text-xs font-bold text-emerald-950">
+                  {parsedEta != null ? `~${parsedEta} mins` : 'Arriving soon'}
+                </p>
+              </div>
             </div>
           </div>
-          <div className="flex items-center gap-2">
-            <Clock className="w-4 h-4 text-emerald-800" />
-            <div>
-              <p className="text-[10px] text-emerald-800/70 uppercase font-bold">ETA</p>
-              <p className="text-xs font-bold text-emerald-950">
-                {booking.estimated_minutes != null ? `~${booking.estimated_minutes} mins` : 'Arriving soon'}
-              </p>
-            </div>
-          </div>
-        </div>
-      )}
+        );
+      })()}
 
       <div className="flex items-center justify-between pt-3 border-t border-emerald-100 mt-2">
         <p className="text-[11px] text-emerald-800/80">

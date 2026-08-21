@@ -84,7 +84,7 @@ const Register = () => {
             <Zap className="w-7 h-7 fill-current" />
           </div>
           <h1 className="text-2xl font-black text-emerald-950 tracking-tight">
-            Join QUIK
+            Join Kuiky
           </h1>
           <p className="text-xs sm:text-sm text-emerald-800/70 font-medium mt-1">
             Fast emergency & roadside assistance whenever you need it

@@ -175,7 +175,7 @@ const Login = () => {
             disabled={loading}
             className="w-full py-3.5 px-6 rounded-2xl font-bold text-sm text-white bg-emerald-800 hover:bg-emerald-900 active:bg-emerald-950 shadow-md transition-all flex items-center justify-center gap-2 disabled:opacity-60 cursor-pointer"
           >
-            <span>{loading ? 'Logging in...' : 'Sign In to QUIK'}</span>
+            <span>{loading ? 'Logging in...' : 'Sign In to Kuiky'}</span>
             {!loading && <ArrowRight className="w-4 h-4" />}
           </button>
         </form>
